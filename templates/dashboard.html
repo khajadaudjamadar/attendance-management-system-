@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — AttendX{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<h2>Today's Attendance — {{ today }}</h2>
+<table class="data-table">
+    <thead>
+        <tr><th>Name</th><th>Role</th><th>ID</th><th>Time</th></tr>
+    </thead>
+    <tbody>
+        {% for r in records %}
+        <tr>
+            <td>{{ r['name'] }}</td>
+            <td>{{ r['role'] }}</td>
+            <td>{{ r['identifier'] }}</td>
+            <td>{{ r['att_time'] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No attendance marked yet today.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>All Registered People</h2>
+<table class="data-table">
+    <thead>
+        <tr><th>Name</th><th>Role</th><th>ID</th><th>Department</th><th></th></tr>
+    </thead>
+    <tbody>
+        {% for p in people %}
+        <tr>
+            <td>{{ p['name'] }}</td>
+            <td>{{ p['role'] }}</td>
+            <td>{{ p['identifier'] }}</td>
+            <td>{{ p['department'] or '—' }}</td>
+            <td><button class="btn-small btn-danger" onclick="deletePerson({{ p['id'] }})">Delete</button></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No one registered yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function deletePerson(id) {
+    if (!confirm('Delete this person and their attendance history?')) return;
+    fetch('/api/delete_person/' + id, { method: 'POST' })
+        .then(() => location.reload());
+}
+</script>
+{% endblock %}

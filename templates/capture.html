@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Capture Face — AttendX{% endblock %}
+{% block content %}
+<h1>Capture Face — {{ person['name'] }}</h1>
+<p>Look at the camera and slowly turn your head slightly left/right for varied samples.</p>
+
+<div class="capture-box">
+    <video id="video" autoplay playsinline width="400" height="300"></video>
+    <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
+</div>
+
+<div class="progress-wrap">
+    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+</div>
+<p id="status">0 / {{ samples_needed }} samples captured</p>
+
+<button id="start-btn" class="btn btn-primary">Start Capture</button>
+<a id="train-link" href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="display:none;">Done — Train Model</a>
+
+<script>
+const personId = {{ person['id'] }};
+const samplesNeeded = {{ samples_needed }};
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const progressBar = document.getElementById('progress-bar');
+const startBtn = document.getElementById('start-btn');
+const trainLink = document.getElementById('train-link');
+
+let captured = 0;
+let capturing = false;
+
+navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 } })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => { statusEl.textContent = 'Camera access denied: ' + err.message; });
+
+function captureFrame() {
+    ctx.drawImage(video, 0, 0, 400, 300);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+    fetch('/api/capture_frame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ person_id: personId, frame_idx: captured, image: dataUrl })
+    })
+    .then(r => r.json())
+    .then(data => {
+        statusEl.textContent = data.message;
+        if (data.ok) {
+            captured += 1;
+            progressBar.style.width = (captured / samplesNeeded * 100) + '%';
+        }
+        if (capturing && captured < samplesNeeded) {
+            setTimeout(captureFrame, 400);
+        } else if (captured >= samplesNeeded) {
+            capturing = false;
+            startBtn.style.display = 'none';
+            trainLink.style.display = 'inline-block';
+            fetch('/api/train', { method: 'POST' })
+                .then(r => r.json())
+                .then(d => { statusEl.textContent = d.message; });
+        }
+    });
+}
+
+startBtn.addEventListener('click', () => {
+    capturing = true;
+    startBtn.disabled = true;
+    captureFrame();
+});
+</script>
+{% endblock %}

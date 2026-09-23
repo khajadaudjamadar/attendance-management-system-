@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance — AttendX{% endblock %}
+{% block content %}
+<h1>Mark Attendance</h1>
+<p>Stand in front of the camera. Recognition runs automatically every couple of seconds.</p>
+
+<div class="capture-box">
+    <video id="video" autoplay playsinline width="400" height="300"></video>
+    <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
+</div>
+
+<div id="result" class="result-box">Waiting for a face...</div>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const resultEl = document.getElementById('result');
+
+navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 } })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => { resultEl.textContent = 'Camera access denied: ' + err.message; });
+
+function recognize() {
+    ctx.drawImage(video, 0, 0, 400, 300);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+    fetch('/api/recognize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataUrl })
+    })
+    .then(r => r.json())
+    .then(data => {
+        resultEl.textContent = data.message;
+        resultEl.className = 'result-box ' + (data.ok ? (data.already_marked ? 'warn' : 'success') : 'idle');
+    })
+    .finally(() => setTimeout(recognize, 2000));
+}
+
+video.addEventListener('loadeddata', () => setTimeout(recognize, 1000));
+</script>
+{% endblock %}

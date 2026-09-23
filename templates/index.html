@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Home — AttendX{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Attendance Management System</h1>
+    <p>Face-recognition based attendance for students and employees.</p>
+</section>
+
+<section class="stats">
+    <div class="stat-card">
+        <span class="stat-number">{{ total_people }}</span>
+        <span class="stat-label">People Registered</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ today_count }}</span>
+        <span class="stat-label">Marked Present Today</span>
+    </div>
+</section>
+
+<section class="actions">
+    <a class="btn btn-primary" href="{{ url_for('register') }}">+ Register a Person</a>
+    <a class="btn btn-secondary" href="{{ url_for('mark_attendance_page') }}">Mark Attendance</a>
+    <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">View Dashboard</a>
+</section>
+{% endblock %}

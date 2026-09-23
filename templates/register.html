@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Register — AttendX{% endblock %}
+{% block content %}
+<h1>Register a Person</h1>
+<form method="POST" class="form-card">
+    <label>Full Name
+        <input type="text" name="name" required>
+    </label>
+
+    <label>Role
+        <select name="role" id="role-select" required>
+            <option value="student">Student</option>
+            <option value="employee">Employee</option>
+        </select>
+    </label>
+
+    <label id="identifier-label">Roll Number
+        <input type="text" name="identifier" required>
+    </label>
+
+    <label>Department
+        <input type="text" name="department" placeholder="e.g. Computer Engineering">
+    </label>
+
+    <button type="submit" class="btn btn-primary">Next: Capture Face →</button>
+</form>
+
+<script>
+const roleSelect = document.getElementById('role-select');
+const idLabel = document.getElementById('identifier-label');
+roleSelect.addEventListener('change', () => {
+    idLabel.firstChild.textContent = roleSelect.value === 'employee' ? 'Employee ID' : 'Roll Number';
+});
+</script>
+{% endblock %}

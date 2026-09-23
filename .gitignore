@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+database/attendance.db
+database/face_model.yml
+database/labels.json
+static/faces/*/
